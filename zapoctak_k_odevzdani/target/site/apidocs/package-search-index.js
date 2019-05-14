@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"m":"funkcni.zapoctak.nemenit","l":"cz.cuni.mff.mandelbrot"}]
