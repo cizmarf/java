@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"cz.cuni.mff.mandelbrot","l":"Controller"},{"p":"cz.cuni.mff.mandelbrot","l":"ControllerCode"},{"p":"cz.cuni.mff.mandelbrot","l":"Global"},{"p":"cz.cuni.mff.mandelbrot","l":"Main"},{"p":"cz.cuni.mff.mandelbrot","l":"Set"}]
