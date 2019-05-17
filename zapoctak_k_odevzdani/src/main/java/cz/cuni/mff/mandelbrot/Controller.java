@@ -5,7 +5,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
@@ -13,193 +12,232 @@ import javafx.scene.paint.Color;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-
+/**
+ * Controller class handles the GUI.
+ * It controls every input from user from GUI. The following methods
+ * are called in fxml file.
+ *
+ * @author		Filip Cizmar
+ * @version		1.0
+ * @see			Initializable
+ *
+ */
 public class Controller implements Initializable {
 
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        resetCanvas();
-        Global.height = (int)canvas.getHeight();
-        Global.width = (int)canvas.getWidth();
-        et = new Set();
-        textFieldIterations.setText(String.valueOf(Global.iterations));
-        textFieldZoom.setText(String.valueOf(Global.getZoom()));
+	/**
+	 * Initializes the controller.
+	 * Sets the default set size according to size of application window,
+	 * the text fields in GUI and sliders range and their listeners.
+	 * Fills the canvas with the set with initial parameters.
+	 *
+	 * @param url	initial param
+	 * @param rb	initial param
+	 */
+	@Override
+	public void initialize(URL url, ResourceBundle rb) {
+		resetCanvas();
+		Global.height = (int)canvas.getHeight();
+		Global.width = (int)canvas.getWidth();
 
-        RSlider.setValue(100);
-        RSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            RSlider_val = RSlider.getValue() / 100;
-            fillCanvas();
-        });
+		Set.setConstruct();
+		textFieldIterations.setText(String.valueOf(Global.iterations));
+		textFieldZoom.setText(String.valueOf(Global.getZoom()));
 
-        GSlider.setValue(100);
-        GSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            GSlider_val = GSlider.getValue() / 100;
-            fillCanvas();
-        });
+		RSlider.setValue(100);
+		RSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+			ControllerCode.RSlider_val = RSlider.getValue() / 100;
+			fillCanvas();
+		});
 
-        BSlider.setValue(100);
-        BSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            BSlider_val = BSlider.getValue() / 100;
-            fillCanvas();
-        });
+		GSlider.setValue(100);
+		GSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+			ControllerCode.GSlider_val = GSlider.getValue() / 100;
+			fillCanvas();
+		});
 
-        fillCanvas();
-    }
+		BSlider.setValue(100);
+		BSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+			ControllerCode.BSlider_val = BSlider.getValue() / 100;
+			fillCanvas();
+		});
 
-    @FXML
-    public void textFieldIterationsKeyTyped(KeyEvent keyEvent) {
-        try {
-            int it = Integer.parseInt(textFieldIterations.getText());
-            Global.setIterations(it);
-            et = new Set();
-            fillCanvas();
-        }catch (Exception e){}
-    }
+		fillCanvas();
+	}
 
-    public void textFieldZoomKeyTyped(KeyEvent keyEvent) {
-        try {
-            long zoom = Long.parseLong(textFieldZoom.getText());
-            Global.setSize(zoom);
-            textFieldIterations.setText(String.valueOf(Global.countIterations()));
-            et = new Set();
-            fillCanvas();
-        }catch (Exception e){}
+	/**
+	 * Handles any change in iteration text field.
+	 * Recompute the set according to given value and fill the main canvas.
+	 * If input cannot by parse to integer nothing happens.
+	 */
+	@FXML
+	public void textFieldIterationsKeyTyped() {
+		try {
+			int it = Integer.parseInt(textFieldIterations.getText());
+			Global.setIterations(it);
+			Set.setConstruct();
+			fillCanvas();
+		}catch (Exception e){}
+	}
 
+	/**
+	 * Handles any change in zoom text field.
+	 * Recompute the set according to given value and fill the main canvas.
+	 * If input cannot by parse to integer nothing happens.
+	 */
+	@FXML
+	public void textFieldZoomKeyTyped() {
+		try {
+			long zoom = Long.parseLong(textFieldZoom.getText());
+			Global.setSize(zoom);
+			textFieldIterations.setText(String.valueOf(Global.countIterations()));
+			Set.setConstruct();
+			fillCanvas();
+		}catch (Exception e){}
+	}
 
-    }
+	/**
+	 * Handles any change in real coordinates part text field.
+	 * Recompute the set according to given value and fill the main canvas.
+	 * If input cannot by parse to integer nothing happens.
+	 */
+	@FXML
+	public void textFieldReKeyTyped() {
+		try {
+			double pointX = Double.parseDouble(textFieldRe.getText());
+			double pointY = Double.parseDouble(textFieldIm.getText());
 
-    @FXML
-    public void textFieldReKeyTyped(KeyEvent keyEvent) {
-        try {
-            double pointX = Double.parseDouble(textFieldRe.getText());
-            double pointY = Double.parseDouble(textFieldIm.getText());
-            Global.pointX = pointX;
-            Global.pointY = pointY;
-            et = new Set();
-            fillDraggedCanvas();
-        }catch (Exception e){}
+			Global.pointX = pointX;
+			Global.pointY = pointY;
+			Set.setConstruct();
+			fillDraggedCanvas();
+		}catch (Exception e){}
+	}
 
-    }
+	/**
+	 * Handles any change in imaginary coordinates part text field.
+	 * Calls the {@link #textFieldReKeyTyped()}.
+	 */
+	@FXML
+	public void textFieldImKeyTyped() {
+		textFieldReKeyTyped();
+	}
 
-    @FXML
-    public void textFieldImKeyTyped(KeyEvent keyEvent) {
-        textFieldReKeyTyped(keyEvent);
-    }
+	/**
+	 * Provides translation of the set.
+	 * The set is not recomputed on each drag event.
+	 *
+	 * @param mouseEvent	provides position of mouse on drag event
+	 */
+	@FXML
+	public void canvasMouseDragged(MouseEvent mouseEvent) {
+		resetCanvas();
+		ControllerCode.actualTranslationX += ControllerCode.mouse_lastX - (int)mouseEvent.getX();
+		ControllerCode.actualTranslationY += ControllerCode.mouse_lastY - (int)mouseEvent.getY();
+		fillDraggedCanvas();
+		ControllerCode.upDateMouse(mouseEvent);
+	}
 
-    @FXML
-    public void canvasMouseDragged(MouseEvent mouseEvent) {
-        resetCanvas();
-        ControllerCode.actualTranslationX += ControllerCode.mouse_lastX - (int)mouseEvent.getX();
-        ControllerCode.actualTranslationY += ControllerCode.mouse_lastY - (int)mouseEvent.getY();
-        fillDraggedCanvas();
-        upDateMouse(mouseEvent);
-    }
+	/**
+	 * Reset actual position of mouse.
+	 *
+	 * @param mouseEvent	provides position of mouse on drag event
+	 */
+	@FXML
+	public void canvasOnMousePressed(MouseEvent mouseEvent) {
+		ControllerCode.upDateMouse(mouseEvent);
+	}
 
-    @FXML
-    public void canvasOnMousePressed(MouseEvent mouseEvent) {
-        upDateMouse(mouseEvent);
-    }
+	/**
+	 * Recompute the set according to actual translation.
+	 */
+	@FXML
+	public void canvasOnMouseRelease() {
+		ControllerCode.addToAbsoluteTranslationAndNullActual();
+		Set.setConstruct();
+		fillCanvas();
+	}
 
-    @FXML
-    public void canvasOnMouseRelease(MouseEvent mouseEvent) {
-        ControllerCode.addToAbsoluteTranslationAndNullActual();
-        et = new Set();
-        fillCanvas();
-    }
+	/**
+	 * Provides zooming on scroll.
+	 * If scroll event occurs stop computing of the new set, sets zoom variable
+	 * according to actual zoom and start computation of the new set.
+	 *
+	 * @param scrollEvent	provides actual value of scroll on scroll event
+	 */
+	@FXML
+	public void canvasOnScroll(ScrollEvent scrollEvent) {
+		Set.killThreads();
+		ControllerCode.actualZoom += scrollEvent.getDeltaY();
+		resetCanvas();
+		textFieldZoom.setText(String.valueOf(Global.getZoom()));
+		ControllerCode.zoom();
+		textFieldIterations.setText(String.valueOf(Global.countIterations()));
+		Set.setConstruct();
+		fillDraggedCanvas();
+	}
 
-    @FXML
-    public void canvasOnScroll(ScrollEvent scrollEvent) {
-        Set.killThreads();
-        ControllerCode.actualZoom += scrollEvent.getDeltaY();
-        resetCanvas();
-        redrawZoomCanvas();
+	/**
+	 * Fills each pixel of canvas with appropriate color.
+	 * And sets right value of center of the set to the text fields.
+	 */
+	private void fillCanvas(){
+		textFieldRe.setText(String.valueOf(Global.pointX));
+		textFieldIm.setText(String.valueOf(Global.pointY));
 
-    }
+		for(int i = 0; i < Global.width; ++i) {
+			for (int j = 0; j < Global.height; ++j) {
+				double realValue = Set.getValue(i, j);
+				ControllerCode.valueToColor(realValue);
+				canvas.getGraphicsContext2D().getPixelWriter().setColor(i,j, ControllerCode.valueToColor(realValue));
+			}
+		}
+	}
 
-    public void redrawZoomCanvas(){
-        //resetCanvas();
-        textFieldZoom.setText(String.valueOf(Global.getZoom()));
-        ControllerCode.zoom();
-        textFieldIterations.setText(String.valueOf(Global.countIterations()));
-        et = new Set();
-        fillDraggedCanvas();
-    }
+	/**
+	 * Fills canvas with translation.
+	 */
+	private void fillDraggedCanvas(){
+		for(int i = 0; i < Global.width; ++i) {
+			for (int j = 0; j < Global.height; ++j) {
+				double realValue = Set.getValueError(i + ControllerCode.actualTranslationX, j + ControllerCode.actualTranslationY);
+				if(realValue == -1)
+					continue;
 
-    private void fillCanvas(){
-        textFieldRe.setText(String.valueOf(Global.pointX));
-        textFieldIm.setText(String.valueOf(Global.pointY));
-        for(int i = 0; i < Global.width; ++i) {
-            for (int j = 0; j < Global.height; ++j) {
-                double realValue = et.getValue(i, j);
-                valueToColor(realValue);
-                canvas.getGraphicsContext2D().getPixelWriter().setColor(i,j, valueToColor(realValue));
-            }
-        }
-    }
+				ControllerCode.valueToColor(realValue);
+				canvas.getGraphicsContext2D().getPixelWriter().setColor(i,j, ControllerCode.valueToColor(realValue));
+			}
+		}
+	}
 
-    private void fillDraggedCanvas(){
-        for(int i = 0; i < Global.width; ++i) {
-            for (int j = 0; j < Global.height; ++j) {
-                double realValue = et.getValueError(i + ControllerCode.actualTranslationX, j + ControllerCode.actualTranslationY);
-                if(realValue == -1)
-                    continue;
-                valueToColor(realValue);
-                canvas.getGraphicsContext2D().getPixelWriter().setColor(i,j, valueToColor(realValue));
-            }
-        }
-    }
+	/**
+	 * Fills canvas with white color.
+	 */
+	private void resetCanvas(){
+		canvas.getGraphicsContext2D().setFill(Color.rgb(253, 253, 253));
+		canvas.getGraphicsContext2D().fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+	}
 
-    private Color valueToColor(double pixel) {
-        Color color1 = ControllerCode.pixelToColor(pixel);
-        Color color2 = ControllerCode.pixelToColor(pixel + 1);
-        double dif = pixel - (int)pixel;
-        double R = ((color2.getRed() - color1.getRed()) * (dif));
-        double B = ((color2.getBlue() - color1.getBlue()) * (dif));
-        double G = ((color2.getGreen() - color1.getGreen()) * (dif));
-        return Color.rgb((int)((color1.getRed() + R) * 255 * RSlider_val), (int)((color1.getGreen() + G) * 255 * GSlider_val), (int)((color1.getBlue() + B) * 255 * BSlider_val));
-    }
+	@FXML
+	private Canvas canvas;
 
+	@FXML
+	private TextField textFieldRe;
 
+	@FXML
+	private TextField textFieldIm;
 
+	@FXML
+	private TextField textFieldIterations;
 
-    private void upDateMouse(MouseEvent mouseEvent){
-        ControllerCode.mouse_lastX = (int)mouseEvent.getX();
-        ControllerCode.mouse_lastY = (int)mouseEvent.getY();
-    }
+	@FXML
+	private TextField textFieldZoom;
 
-    private void resetCanvas(){
-        canvas.getGraphicsContext2D().setFill(Color.rgb(253, 253, 253));
-        canvas.getGraphicsContext2D().fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+	@FXML
+	private Slider RSlider;
 
-    }
+	@FXML
+	private Slider GSlider;
 
-    private Set et;
-
-    private double RSlider_val = 1;
-    private double GSlider_val = 1;
-    private double BSlider_val = 1;
-
-    @FXML
-    private Canvas canvas;
-
-    @FXML
-    private TextField textFieldRe;
-
-    @FXML
-    private TextField textFieldIm;
-
-    @FXML
-    private TextField textFieldIterations;
-
-    @FXML
-    private TextField textFieldZoom;
-
-    @FXML
-    private Slider RSlider;
-
-    @FXML
-    private Slider GSlider;
-
-    @FXML
-    private Slider BSlider;
+	@FXML
+	private Slider BSlider;
 }
