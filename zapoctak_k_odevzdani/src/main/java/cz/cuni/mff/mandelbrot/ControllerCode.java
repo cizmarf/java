@@ -3,16 +3,13 @@ package cz.cuni.mff.mandelbrot;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
- class ControllerCode{
+class ControllerCode{
 	 static int actualTranslationX = 0, actualTranslationY = 0;
 	 static int actualZoom = (int) Global.zoomNorm;
 	 static int mouse_lastX, mouse_lastY;
 
 	/**
 	 * Function actualizes values of center of set on mouse release.
-	 * This is computed by #actualTranslationX and #actualTranslationY
-	 * and according to width and height of canvas and actual size of zoomed area.
-	 * In these variables is stored value of translation until mouse press.
 	 */
 	 static void addToAbsoluteTranslationAndNullActual(){
 		Global.pointX += Global.sizeX * (actualTranslationX/(double) Global.width);
@@ -25,7 +22,7 @@ import javafx.scene.paint.Color;
 	/**
 	 * Function return normalized zoom.
 	 * The zoom value is normalized by #Global.zoomNorm variable.
-	 * The Function discriminates between zoomin and zoomout.
+	 * The Function discriminates between zoom in and zoom out.
 	 * If zoom is immeasurable function returns 1.
 	 */
 	 private static double getNormZoom(){
@@ -42,8 +39,8 @@ import javafx.scene.paint.Color;
 	}
 
 	/**
-	 * Function sets global parametres according to zoom.
-	 * If zoomout overlap the maximum height and width values it sets them to initial values.
+	 * Function sets global parameters according to zoom.
+	 * If zoom out overlap the maximum height and width values it sets them to initial values.
 	 */
 	 static void zoom(){
 		double normZoom = getNormZoom();
@@ -62,12 +59,17 @@ import javafx.scene.paint.Color;
 
 	/**
 	 * Function gives real value of pixel and compute the RGB representation of this value.
-	 * The function proccess 12 bits from integer part of pixel variable and place corresponding bits
+	 * The function process 12 bits of integer part of pixel variable and place corresponding bits
 	 * to designated places in output RGB variable.
+	 * <p>
 	 * The bits are placed by the following key:
+	 * <p>
 	 * 12 bits		CBA_987_654_321
+	 * <p>
 	 * R =			0907_4321
+	 * <p>
 	 * G =			0B80_5321
+	 * <p>
 	 * B =			C090_6321
 	 */
 	 private static Color pixelToColor(double pixel) {
@@ -97,7 +99,7 @@ import javafx.scene.paint.Color;
 	/**
 	 * Computes color of pixel.
 	 * Firstly it gets two colors and then it chooses an color between them using
-	 * linear interpolation. Linear interpolation depends on decimal part of
+	 * linear interpolation. Linear interpolation result depends on decimal part of
 	 * <code>pixel</code> variable.
 	 *
 	 * @param pixel		the value represents pixel computed by definition of mandelbrot set
