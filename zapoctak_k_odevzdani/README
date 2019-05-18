@@ -1,0 +1,5 @@
+run application:
+mvn clean javafx:run
+
+create documentation:
+mvn clean javadoc:javadoc
