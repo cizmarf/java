@@ -10,6 +10,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.ResourceBundle;
 
 /**
@@ -40,7 +41,7 @@ public class Controller implements Initializable {
 		Global.width = (int)canvas.getWidth();
 
 		Set.setConstruct();
-		textFieldIterations.setText(String.valueOf(Global.iterations));
+		textFieldIterations.setText(String.valueOf(Global.getIterations()));
 		textFieldZoom.setText(String.valueOf(Global.getZoom()));
 
 		RSlider.setValue(100);
@@ -61,65 +62,46 @@ public class Controller implements Initializable {
 			fillCanvas();
 		});
 
+		ZSlider.setValue(0);
+		ZSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+			NumberFormat nf = NumberFormat.getInstance();
+			nf.setMaximumFractionDigits(0);
+			nf.setGroupingUsed(false);
+			long newZoom = ControllerCode.zoomBySlider(ZSlider.getValue());
+			textFieldZoom.setText(nf.format(newZoom));
+			textFieldIterations.setText(String.valueOf(Global.countIterations(newZoom)));
+		});
+
 		fillCanvas();
 	}
 
 	/**
 	 * Handles any change in iteration text field.
-	 * Recompute the set according to given value and fill the main canvas.
+	 * Set flag used in {@link #buttonRedrawOnAction()} that let it know if new
+	 * base iterations value is needed.
 	 * If input cannot by parse to integer nothing happens.
 	 */
 	@FXML
 	public void textFieldIterationsKeyTyped() {
 		try {
-			int it = Integer.parseInt(textFieldIterations.getText());
-			Global.setIterations(it);
-			Set.setConstruct();
-			fillCanvas();
+			iterationsChanged =true;
 		}catch (Exception e){}
 	}
 
 	/**
 	 * Handles any change in zoom text field.
-	 * Recompute the set according to given value and fill the main canvas.
+	 * Recompute the set according to given value.
 	 * If input cannot by parse to integer nothing happens.
 	 */
 	@FXML
 	public void textFieldZoomKeyTyped() {
 		try {
 			long zoom = Long.parseLong(textFieldZoom.getText());
-			Global.setSize(zoom);
-			textFieldIterations.setText(String.valueOf(Global.countIterations()));
-			Set.setConstruct();
-			fillCanvas();
+			if(zoom < 1) return;
+			textFieldIterations.setText(String.valueOf(Global.countIterations(zoom)));
+			ZSlider.setValue(ControllerCode.sliderByZoom(zoom));
+			textFieldZoom.positionCaret(textFieldZoom.getText().length());
 		}catch (Exception e){}
-	}
-
-	/**
-	 * Handles any change in real coordinates part text field.
-	 * Recompute the set according to given value and fill the main canvas.
-	 * If input cannot by parse to integer nothing happens.
-	 */
-	@FXML
-	public void textFieldReKeyTyped() {
-		try {
-			double pointX = Double.parseDouble(textFieldRe.getText());
-			double pointY = Double.parseDouble(textFieldIm.getText());
-
-			Global.pointX = pointX;
-			Global.pointY = pointY;
-			Set.setConstruct();
-			fillDraggedCanvas();
-		}catch (Exception e){}
-	}
-
-	/**
-	 * Handles any change in imaginary coordinates part text field.
-	 * Calls the {@link #textFieldReKeyTyped()}.
-	 */
-	@FXML
-	public void textFieldImKeyTyped() {
-		textFieldReKeyTyped();
 	}
 
 	/**
@@ -173,7 +155,31 @@ public class Controller implements Initializable {
 		ControllerCode.zoom();
 		textFieldIterations.setText(String.valueOf(Global.countIterations()));
 		Set.setConstruct();
+		ZSlider.setValue(ControllerCode.sliderByZoom(Global.getZoom()));
 		fillDraggedCanvas();
+	}
+
+	/**
+	 * Recompute the set on button press.
+	 * It takes values from text fields.
+	 */
+	@FXML
+	public void buttonRedrawOnAction() {
+		long zoom = Long.parseLong(textFieldZoom.getText().replaceAll("\\s+", ""));
+		if(zoom < 1)
+			zoom = 1;
+		Global.setSize(zoom);
+
+		if(iterationsChanged){
+			int it = Integer.parseInt(textFieldIterations.getText());
+			Global.setIterations(it);
+		}
+
+		Global.pointX = Double.parseDouble(textFieldRe.getText());
+		Global.pointY = Double.parseDouble(textFieldIm.getText());
+
+		Set.setConstruct();
+		fillCanvas();
 	}
 
 	/**
@@ -191,6 +197,7 @@ public class Controller implements Initializable {
 				canvas.getGraphicsContext2D().getPixelWriter().setColor(i,j, ControllerCode.valueToColor(realValue));
 			}
 		}
+		iterationsChanged = false;
 	}
 
 	/**
@@ -217,6 +224,8 @@ public class Controller implements Initializable {
 		canvas.getGraphicsContext2D().fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 	}
 
+	private boolean iterationsChanged = false;
+
 	@FXML
 	private Canvas canvas;
 
@@ -240,4 +249,7 @@ public class Controller implements Initializable {
 
 	@FXML
 	private Slider BSlider;
+
+	@FXML
+	private Slider ZSlider;
 }

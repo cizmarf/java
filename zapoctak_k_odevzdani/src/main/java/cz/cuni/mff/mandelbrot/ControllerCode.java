@@ -4,9 +4,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
 class ControllerCode{
-	 static int actualTranslationX = 0, actualTranslationY = 0;
-	 static int actualZoom = (int) Global.zoomNorm;
-	 static int mouse_lastX, mouse_lastY;
+	static int actualTranslationX = 0, actualTranslationY = 0;
+	static int actualZoom = (int) Global.zoomNorm;
+	static int mouse_lastX, mouse_lastY;
+	static private double magicPower = 6;
+	static private long magicMax = 5_000_000_000_000L - 1;
 
 	/**
 	 * Function actualizes values of center of set on mouse release.
@@ -73,7 +75,7 @@ class ControllerCode{
 	 * B =			C090_6321
 	 */
 	 private static Color pixelToColor(double pixel) {
-		int normalizedValue = (int)pixel % Global.iterations;
+		int normalizedValue = (int)pixel % Global.getIterations();
 		normalizedValue = (int) (normalizedValue /(double) Global.countIterations() * Global.numberOfColors);
 
 		if((int)pixel == Global.countIterations())
@@ -125,6 +127,14 @@ class ControllerCode{
 	 static void upDateMouse(MouseEvent mouseEvent){
 		ControllerCode.mouse_lastX = (int)mouseEvent.getX();
 		ControllerCode.mouse_lastY = (int)mouseEvent.getY();
+	}
+
+	static long zoomBySlider(double val){
+		return (long)(Math.pow((val / 100.0), magicPower) * magicMax) + 1;
+	}
+
+	static double sliderByZoom(long newZoom){
+	 	return Math.pow((double)(newZoom - 1) / magicMax, 1/6.0) * 100;
 	}
 
 
